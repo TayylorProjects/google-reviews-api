@@ -14,13 +14,15 @@ const auth = new google.auth.GoogleAuth({
 
 app.get('/reviews', async (req, res) => {
   try {
-    console.log('Received GET /reviews');
+    console.log('GET /reviews hit');
+    
     const client = await auth.getClient();
     const reviewsApi = google.mybusiness({ version: 'v4', auth: client });
 
     const locationId = 'locations/17950674629835159127'; // Replace with your actual location ID
-    console.log('Fetching reviews for', locationId);
 
+    const { data } = await reviewsApi.accounts.locations.reviews.list({
+      parent: locationId,
     });
 
     const reviews = (data.reviews || []).map((r) => ({
@@ -31,7 +33,7 @@ app.get('/reviews', async (req, res) => {
 
     res.json(reviews);
   } catch (err) {
-    console.error(err);
+    console.error('ERROR FETCHING REVIEWS:', err.response?.data || err.message || err);
     res.status(500).send('Error fetching reviews');
   }
 });
