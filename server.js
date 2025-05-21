@@ -17,24 +17,38 @@ app.get('/reviews', async (req, res) => {
     console.log('GET /reviews hit');
     
     const client = await auth.getClient();
-    const reviewsApi = google.mybusiness({ version: 'v4', auth: client });
+    app.get('/reviews', async (req, res) => {
+  try {
+    const client = await auth.getClient();
 
-    const locationId = 'locations/17950674629835159127'; // Replace with your actual location ID
+    const locationId = 'accounts/123456789012345678901/locations/17950674629835159127'; // Replace with real account ID
+    const url = `https://mybusiness.googleapis.com/v4/${locationId}/reviews`;
 
-    const { data } = await reviewsApi.accounts.locations.reviews.list({
-      parent: locationId,
-    });
+    const response = await client.request({ url });
 
-    const reviews = (data.reviews || []).map((r) => ({
+    const reviews = (response.data.reviews || []).map((r) => ({
       rating: r.starRating,
       text: r.comment,
-      author: r.reviewer.displayName,
+      author: r.reviewer?.displayName || 'Anonymous',
     }));
 
     res.json(reviews);
   } catch (err) {
-    console.error('ERROR FETCHING REVIEWS:', err.response?.data || err.message || err);
+    console.error(err.response?.data || err.message);
     res.status(500).send('Error fetching reviews');
+  }
+});
+app.get('/accounts', async (req, res) => {
+  try {
+    const client = await auth.getClient();
+
+    const url = 'https://mybusiness.googleapis.com/v4/accounts';
+    const response = await client.request({ url });
+
+    res.json(response.data);
+  } catch (err) {
+    console.error(err.response?.data || err.message);
+    res.status(500).send('Error fetching accounts');
   }
 });
 
